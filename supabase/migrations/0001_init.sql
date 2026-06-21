@@ -48,7 +48,7 @@ create table public.carts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   customer_name text,
-  share_token text not null unique default encode(gen_random_bytes(9), 'base64'),
+  share_token text not null unique default encode(gen_random_bytes(9), 'hex'),
   shared_with_admin boolean not null default false,
   status text not null default 'active' check (status in ('active','ordered')),
   created_at timestamptz not null default now(),
@@ -129,7 +129,7 @@ end; $$;
 
 create or replace function public.place_order(
   p_cart_id uuid, p_name text, p_phone text, p_address text)
-returns public.orders language plpgsql security definer set search_path = public as $$
+returns public.orders language plpgsql security definer set search_path = public, extensions as $$
 declare v_order public.orders; v_ref text; v_subtotal integer;
 begin
   if auth.uid() is null then raise exception 'not authenticated'; end if;
